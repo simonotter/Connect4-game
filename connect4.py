@@ -46,8 +46,7 @@ class ConnectFourApi(remote.Service):
         except ValueError:
             raise endpoints.BadRequestException('Invalid player objects')
 
-        return game.to_form("Good luck")
-        # return game.to_form("Good luck. It\'s %s\'s turn" % game.whose_turn)
+        return game.to_form("Good luck. It\'s %s\'s turn" % game.whose_turn.get().name)
 
 
 # registers API
