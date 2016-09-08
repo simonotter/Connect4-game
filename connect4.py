@@ -1,7 +1,8 @@
 import endpoints
 from protorpc import remote, messages
-from models import User, Game
-from models import StringMessage, NewGameForm, GameForm, MakeMoveForm
+from models import User, Game, Score
+from models import StringMessage, NewGameForm, \
+                   GameForm, MakeMoveForm, ScoreForms
 from utils import get_by_urlsafe
 
 API_EXPLORER_CLIENT_ID = endpoints.API_EXPLORER_CLIENT_ID
@@ -89,8 +90,12 @@ class ConnectFourApi(remote.Service):
             return game.to_form('This game has ended. It was won by %s.'
                                 % game.whose_turn.get().name)
 
-        # TODO: Check if integer
-        column = int(request.column)
+        # Check if column integer
+        try:
+            column = int(request.column)
+        except ValueError:
+            return game.to_form('Column must be a number between 1 and 7!')
+
         # validate the column input
         if not (1 <= column <= 7):
             return game.to_form('Column must be a number between 1 and 7!')
@@ -122,12 +127,17 @@ class ConnectFourApi(remote.Service):
 
             # Check if game has been won
             if game.is_won():
-                game.game_over = True
+                game.end_game(True)
                 message = "%s has won the game!" % game.whose_turn.get().name
+
             else:
-                # Update whose_turn to next player
-                game.switch_turn()
-                message = "Now it's %s's turn." % game.whose_turn.get().name
+                if game.holes_remaining == 0:
+                    game.end_game(False)
+                    message = "Game Over - It's a draw"
+                else:
+                    # Update whose_turn to next player
+                    game.switch_turn()
+                    message = "Now it's %s's turn." % game.whose_turn.get().name
 
             # Store the updated game in ndb
             game.put()
@@ -136,6 +146,16 @@ class ConnectFourApi(remote.Service):
             message = "This column is full, try another column"
 
         return game.to_form(message)
+
+    @endpoints.method(response_message=ScoreForms,
+                      path='scores',
+                      name='get_scores',
+                      http_method='GET')
+    def get_scores(self, request):
+        """Return all scores"""
+        return ScoreForms(items=[score.to_form()
+                                 for score in Score.query().order(
+                                    -Score.holes_remaining)])
 
 
 # registers API

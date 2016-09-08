@@ -1,6 +1,7 @@
 from protorpc import messages
 from google.appengine.ext import ndb
 import random
+from datetime import date
 
 
 class User(ndb.Model):
@@ -30,6 +31,19 @@ class Board:
                 conditional logic and returns. It works, but I don't feel it is easy
                 to understand """
         return False  # Move has been unsuccessful
+
+    def visual_board(self):
+        """Returns a string rendered visual of the game board"""
+        row_string = ''
+        #for row in range(6, self.width-1):
+        row_string += ''.join(self.board[self.height - 1]) + '|'
+        row_string += ''.join(self.board[self.height - 2]) + '|'
+        row_string += ''.join(self.board[self.height - 3]) + '|'
+        row_string += ''.join(self.board[self.height - 4]) + '|'
+        row_string += ''.join(self.board[self.height - 5]) + '|'
+        row_string += ''.join(self.board[self.height - 6]) + '|'
+
+        return row_string
 
     def is_won(self):
         # check for horizontal winning rows
@@ -90,6 +104,67 @@ class Board:
                         diagonal_string.find('YYYY') != -1:
             return True  # found winning diagonal row
 
+        # check for diagonal winning rows (top right to bottom left)
+        # TODO: This can be done much more efficiently!
+        diagonal_string = ''
+        diagonal_string += self.board[3][0]
+        diagonal_string += self.board[2][1]
+        diagonal_string += self.board[1][2]
+        diagonal_string += self.board[0][3]
+        if diagonal_string.find('RRRR') != -1 or \
+                        diagonal_string.find('YYYY') != -1:
+            return True  # found winning diagonal row
+
+        diagonal_string = ''
+        diagonal_string += self.board[4][0]
+        diagonal_string += self.board[3][1]
+        diagonal_string += self.board[2][2]
+        diagonal_string += self.board[1][3]
+        diagonal_string += self.board[0][4]
+        if diagonal_string.find('RRRR') != -1 or \
+                        diagonal_string.find('YYYY') != -1:
+            return True  # found winning diagonal row
+
+        diagonal_string = ''
+        diagonal_string += self.board[5][0]
+        diagonal_string += self.board[4][1]
+        diagonal_string += self.board[3][2]
+        diagonal_string += self.board[2][3]
+        diagonal_string += self.board[1][4]
+        diagonal_string += self.board[0][5]
+        if diagonal_string.find('RRRR') != -1 or \
+                        diagonal_string.find('YYYY') != -1:
+            return True  # found winning diagonal row
+
+        diagonal_string = ''
+        diagonal_string += self.board[5][1]
+        diagonal_string += self.board[4][2]
+        diagonal_string += self.board[3][3]
+        diagonal_string += self.board[2][4]
+        diagonal_string += self.board[1][5]
+        diagonal_string += self.board[0][6]
+        if diagonal_string.find('RRRR') != -1 or \
+                        diagonal_string.find('YYYY') != -1:
+            return True  # found winning diagonal row
+
+        diagonal_string = ''
+        diagonal_string += self.board[5][2]
+        diagonal_string += self.board[4][3]
+        diagonal_string += self.board[3][4]
+        diagonal_string += self.board[2][5]
+        diagonal_string += self.board[1][6]
+        if diagonal_string.find('RRRR') != -1 or \
+                        diagonal_string.find('YYYY') != -1:
+            return True  # found winning diagonal row
+
+        diagonal_string = ''
+        diagonal_string += self.board[5][3]
+        diagonal_string += self.board[4][4]
+        diagonal_string += self.board[3][5]
+        diagonal_string += self.board[2][6]
+        if diagonal_string.find('RRRR') != -1 or \
+                        diagonal_string.find('YYYY') != -1:
+            return True  # found winning diagonal row
 
 
         return False
@@ -151,6 +226,23 @@ class Game(ndb.Model):
         """Checks if the game has been won"""
         return self.board.is_won()
 
+    def end_game(self, won):
+        self.game_over = True
+        if won:
+
+            # get the loser (Winner is in whose_turn)
+            if self.player1 == self.whose_turn:
+                loser = self.player2
+            else:
+                loser = self.player1
+
+            # Add the game to the score 'board'
+            score = Score(winning_user=self.whose_turn,
+                          losing_user=loser,
+                          date=date.today(),
+                          holes_remaining=self.holes_remaining)
+            score.put()
+
     def to_form(self, message):
         """Returns a GameForm representation of the Game"""
         form = GameForm()
@@ -163,7 +255,22 @@ class Game(ndb.Model):
         form.game_over = self.game_over
         form.message = message
         form.board = str(self.board.board)
+        form.visual_board = self.board.visual_board()
         return form
+
+
+class Score(ndb.Model):
+    """Score object"""
+    winning_user = ndb.KeyProperty(required=True, kind='User')
+    losing_user = ndb.KeyProperty(required=True, kind='User')
+    date = ndb.DateProperty(required=True)
+    holes_remaining = ndb.IntegerProperty(required=True)
+
+    def to_form(self):
+        return ScoreForm(winning_user=self.winning_user.get().name,
+                         losing_user=self.losing_user.get().name,
+                         date=str(self.date),
+                         holes_remaining=self.holes_remaining)
 
 
 class GameForm(messages.Message):
@@ -176,6 +283,7 @@ class GameForm(messages.Message):
     game_over = messages.BooleanField(6, required=True)
     message = messages.StringField(7, required=True)
     board = messages.StringField(8, required=True)
+    visual_board = messages.StringField(9, required=True)
 
 
 class NewGameForm(messages.Message):
@@ -188,3 +296,16 @@ class MakeMoveForm(messages.Message):
     """Used to make a move in an existing game"""
     player = messages.StringField(1, required=True)
     column = messages.StringField(2, required=True)
+
+
+class ScoreForm(messages.Message):
+    """ScoreForm for outbound Score information"""
+    winning_user = messages.StringField(1, required=True)
+    losing_user = messages.StringField(2, required=True)
+    date = messages.StringField(3, required=True)
+    holes_remaining = messages.IntegerField(4, required=True)
+
+
+class ScoreForms(messages.Message):
+    """Return multiple ScoreForms"""
+    items = messages.MessageField(ScoreForm, 1, repeated=True)

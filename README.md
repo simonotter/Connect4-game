@@ -43,6 +43,56 @@ the path parameter `urlsafe_game_key`.
     - Description: Creates a new Game. player1_ and player2_user_names provided 
     must correspond to an existing user - will raise a NotFoundException if not. 
     Randomises which player is to play first.
+       
+ - **get_game**
+    - Path: 'game/{urlsafe_game_key}'
+    - Method: GET
+    - Parameters: urlsafe_game_key
+    - Returns: GameForm with current game state.
+    - Description: Returns the current state of a game.
+    
+ - **make_move**
+    - Path: 'game/{urlsafe_game_key}'
+    - Method: PUT
+    - Parameters: urlsafe_game_key, player, column
+    - Returns: GameForm with new game state.
+    - Description: Accepts a players 'column' to put their token into and 
+    returns the updated state of the game. If this causes a game to end, a 
+    corresponding Score entity will be created.
+    
+- **get_scores**
+    - Path: 'scores'
+    - Method: GET
+    - Parameters: None
+    - Returns: ScoreForms.
+    - Description: Returns all Scores in the database sorted by holes_remaining.
+    
+##Models Included:
+ - **User**
+    - Stores unique user_name and email address.
+    
+ - **Game**
+    - Stores unique game states. Associated with User model via KeyProperty.
+    
+ - **Score**
+    - Records completed games. Associated with Users model via KeyProperty.
+    
+##Forms Included:
+ - **GameForm**
+    - Representation of a Game's state (urlsafe_key, holes_remaining,
+    game_over flag, message, player1 name, player2 name, board, 
+    visual_board, whose_turn).
+ - **NewGameForm**
+    - Used to create a new game (player1_user_name, player2_user_name)
+ - **MakeMoveForm**
+    - Inbound make move form (player, column).
+ - **ScoreForm**
+    - Representation of a completed game's Score (winning_user, losing_user, 
+    date, holes_remaining which is the score).
+ - **ScoreForms**
+    - Multiple ScoreForm container.
+ - **StringMessage**
+    - General purpose String container.
     
 
  
