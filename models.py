@@ -10,11 +10,6 @@ class User(ndb.Model):
     email = ndb.StringProperty(required=True)
 
 
-class StringMessage(messages.Message):
-    """StringMessage-- outbound (single) string message"""
-    message = messages.StringField(1, required=True)
-
-
 class Board:
     width, height = 7, 6
 
@@ -309,3 +304,8 @@ class ScoreForm(messages.Message):
 class ScoreForms(messages.Message):
     """Return multiple ScoreForms"""
     items = messages.MessageField(ScoreForm, 1, repeated=True)
+
+
+class StringMessage(messages.Message):
+    """StringMessage-- outbound (single) string message"""
+    message = messages.StringField(1, required=True)
