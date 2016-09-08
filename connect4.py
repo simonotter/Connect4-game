@@ -11,10 +11,10 @@ USER_REQUEST = endpoints.ResourceContainer(user_name=messages.StringField(1),
                                            email=messages.StringField(2))
 NEW_GAME_REQUEST = endpoints.ResourceContainer(NewGameForm)
 GET_GAME_REQUEST = endpoints.ResourceContainer(
-        urlsafe_game_key=messages.StringField(1),)
+    urlsafe_game_key=messages.StringField(1), )
 MAKE_MOVE_REQUEST = endpoints.ResourceContainer(
     MakeMoveForm,
-    urlsafe_game_key=messages.StringField(1),)
+    urlsafe_game_key=messages.StringField(1), )
 
 
 @endpoints.api(name='connect4',
@@ -51,7 +51,8 @@ class ConnectFourApi(remote.Service):
         except ValueError:
             raise endpoints.BadRequestException('Invalid player objects')
 
-        return game.to_form("Good luck. It\'s %s\'s turn" % game.whose_turn.get().name)
+        return game.to_form(
+            "Good luck. It\'s %s\'s turn" % game.whose_turn.get().name)
 
     @endpoints.method(request_message=GET_GAME_REQUEST,
                       response_message=GameForm,
@@ -63,9 +64,11 @@ class ConnectFourApi(remote.Service):
         game = get_by_urlsafe(request.urlsafe_game_key, Game)
         if game:
             if game.game_over:
-                return game.to_form('This game has ended')
+                return game.to_form('This game has ended. It was won by %s.'
+                                    % game.whose_turn.get().name)
             else:
-                return game.to_form('Time to make a move, %s!' % game.whose_turn.get().name)
+                return game.to_form(
+                    'Time to make a move, %s!' % game.whose_turn.get().name)
         else:
             raise endpoints.NotFoundException('Game not found!')
 
@@ -77,49 +80,62 @@ class ConnectFourApi(remote.Service):
     def make_move(self, request):
         """Makes a move. Returns a game state with message"""
         game = get_by_urlsafe(request.urlsafe_game_key, Game)
-        if game.game_over:
-            return game.to_form('Game already over!')
+        if not game:
+            """ TODO: Udacity Reviewer, how can I return a null GameForm
+                      response if the game doesn't exist?"""
+            raise ValueError("Game doesn't exist")
 
-        # TODO: Udacity Reviewer - is this efficient to keep getting the names each time?
-        if request.player not in [game.player1.get().name, game.player2.get().name]:
+        if game.game_over:
+            return game.to_form('This game has ended. It was won by %s.'
+                                % game.whose_turn.get().name)
+
+        # TODO: Check if integer
+        column = int(request.column)
+        # validate the column input
+        if not (1 <= column <= 7):
+            return game.to_form('Column must be a number between 1 and 7!')
+
+        """ TODO: Udacity Reviewer, is this efficient to keep getting the
+                  names each time? I seem to be doing it all the time in this
+                  method and it will make many reads to the ndb"""
+
+        # Check if the player is part of this game
+        if request.player not in [game.player1.get().name,
+                                  game.player2.get().name]:
             return game.to_form('You are not part of this game')
 
+        # Ensure it's this players turn
         if game.whose_turn.get().name != request.player:
-            return game.to_form("It's not your turn, it's %s's!" % game.whose_turn.get().name)
+            return game.to_form(
+                "It's not your turn, it's %s's!" % game.whose_turn.get().name)
 
-        # TODO: Player can only choose a column
-        game.board.update(1,1, request.player)
-        print str(game.board)
+        # Get token colour of current player
+        if request.player == game.player1.get().name:
+            colour = game.player1Colour
+        else:
+            colour = game.player2Colour
 
+        if game.board.update(column, colour):
 
+            # Decrease attempts remaining
+            game.holes_remaining -= 1
 
-        # TODO: Update whose_turn to next player
+            # Check if game has been won
+            if game.is_won():
+                game.game_over = True
+                message = "%s has won the game!" % game.whose_turn.get().name
+            else:
+                # Update whose_turn to next player
+                game.switch_turn()
+                message = "Now it's %s's turn." % game.whose_turn.get().name
 
-        # TODO: Deprecate attempts remaining
-        # game.attempts_remaining -= 1
-        # if request.guess == game.target:
-        #     game.end_game(True)
-        #     return game.to_form('You win!')
-        #
-        # if request.guess < game.target:
-        #     msg = 'Too low!'
-        # else:
-        #     msg = 'Too high!'
+            # Store the updated game in ndb
+            game.put()
 
-        # if game.attempts_remaining < 1:
-        #     game.end_game(False)
-        #     return game.to_form(msg + ' Game over!')
-        # else:
-        #     game.put()
-        #     return game.to_form(msg)
+        else:
+            message = "This column is full, try another column"
 
-        # TODO: Store the updated game in ndb
-
-
-
-
-        return game.to_form('Still testing')
-
+        return game.to_form(message)
 
 
 # registers API
