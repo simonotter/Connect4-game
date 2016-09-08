@@ -67,6 +67,14 @@ the path parameter `urlsafe_game_key`.
     - Returns: ScoreForms.
     - Description: Returns all Scores in the database sorted by holes_remaining.
     
+- **get_user_games**
+    - Path: 'user/{user_name}'
+    - Method: GET
+    - Parameters: user_name
+    - Returns: GameForms
+    - Description: Returns all active Games in the database where user_name 
+    is player 1 or player 2.
+    
 ##Models Included:
  - **User**
     - Stores unique user_name and email address.

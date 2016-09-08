@@ -1,8 +1,9 @@
 import endpoints
+from google.appengine.ext import ndb
 from protorpc import remote, messages
 from models import User, Game, Score
 from models import StringMessage, NewGameForm, \
-                   GameForm, MakeMoveForm, ScoreForms
+                   GameForm, GameForms, MakeMoveForm, ScoreForms
 from utils import get_by_urlsafe
 
 API_EXPLORER_CLIENT_ID = endpoints.API_EXPLORER_CLIENT_ID
@@ -13,6 +14,8 @@ USER_REQUEST = endpoints.ResourceContainer(user_name=messages.StringField(1),
 NEW_GAME_REQUEST = endpoints.ResourceContainer(NewGameForm)
 GET_GAME_REQUEST = endpoints.ResourceContainer(
     urlsafe_game_key=messages.StringField(1), )
+GET_USER_GAMES_REQUEST = endpoints.ResourceContainer(
+    user_name=messages.StringField(1))
 MAKE_MOVE_REQUEST = endpoints.ResourceContainer(
     MakeMoveForm,
     urlsafe_game_key=messages.StringField(1), )
@@ -156,6 +159,23 @@ class ConnectFourApi(remote.Service):
         return ScoreForms(items=[score.to_form()
                                  for score in Score.query().order(
                                     -Score.holes_remaining)])
+
+    @endpoints.method(request_message=GET_USER_GAMES_REQUEST,
+                      response_message=GameForms,
+                      path='user/{user_name}',
+                      name='get_user_games',
+                      http_method='GET')
+    def get_user_games(self, request):
+        """Returns all of a User's active games"""
+        user = User.query().filter(User.name == request.user_name).get()
+        print user.key
+        q = Game.query(ndb.AND(ndb.OR(Game.player1 == user.key,
+                                      Game.player2 == user.key)),
+                              (Game.game_over != True))
+        games = q.fetch()
+
+        return GameForms(
+            items=[game.to_form('test') for game in games])
 
 
 # registers API
