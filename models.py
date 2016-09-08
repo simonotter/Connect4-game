@@ -14,13 +14,27 @@ class StringMessage(messages.Message):
     message = messages.StringField(1, required=True)
 
 
+class Board:
+    def __init__(self):
+        width, height = 7, 6
+        self.board = [[0 for x in range(width)] for y in range(height)]
+
+    def update(self, row, col, player):
+        # TODO: User can't specify a row, only a column: gravity does the rest!
+        if self.board[row+1][col+1] is not 0:
+            raise ValueError('This position has already been filled')
+        else:
+            self.board[row+1][col+1] = "R"
+
+
 class Game(ndb.Model):
     """Game class"""
     player1 = ndb.KeyProperty(required=True, kind='User')
     player2 = ndb.KeyProperty(required=True, kind='User')
     whose_turn = ndb.KeyProperty(required=True, kind='User')
     created = ndb.DateTimeProperty(auto_now_add=True)
-    # Board is 7x6 (widthxheight), so 42 holes/spaces
+    # Board is 7x6 (width x height), so 42 holes/spaces
+    board = ndb.PickleProperty(required=True)
     holes_remaining = ndb.IntegerProperty(required=True, default=42)
     game_over = ndb.BooleanProperty(required=True, default=False)
 
@@ -37,15 +51,16 @@ class Game(ndb.Model):
             raise ValueError('Player 2 does not exist')
 
         # Randomly choose which player plays first
-        if random.choice(range(1,3)) == 1:
+        if random.choice(range(1, 3)) == 1:
             whose_turn = player1.key
         else:
             whose_turn = player2.key
 
-        # Create game and put in datastore
+        # Create board, game and put in datastore
         game = Game(player1=player1.key,
                     player2=player2.key,
-                    whose_turn=whose_turn)
+                    whose_turn=whose_turn,
+                    board=Board())
         game.put()
         return game
 
@@ -59,6 +74,7 @@ class Game(ndb.Model):
         form.holes_remaining = self.holes_remaining
         form.game_over = self.game_over
         form.message = message
+        form.board = str(self.board.board)
         return form
 
 
@@ -71,9 +87,16 @@ class GameForm(messages.Message):
     holes_remaining = messages.IntegerField(5, required=True)
     game_over = messages.BooleanField(6, required=True)
     message = messages.StringField(7, required=True)
+    board = messages.StringField(8, required=True)
 
 
 class NewGameForm(messages.Message):
     """Used to create a new game"""
     player1 = messages.StringField(1, required=True)
     player2 = messages.StringField(2, required=True)
+
+
+class MakeMoveForm(messages.Message):
+    """Used to make a move in an existing game"""
+    player = messages.StringField(1, required=True)
+    position = messages.StringField(2, required=True)
