@@ -60,12 +60,13 @@ the path parameter `urlsafe_game_key`.
     returns the updated state of the game. If this causes a game to end, a 
     corresponding Score entity will be created.
     
-- **get_scores**
+- **get_high_scores**
     - Path: 'scores'
     - Method: GET
-    - Parameters: None
+    - Parameters: quantity_of_scores (optional)
     - Returns: ScoreForms.
-    - Description: Returns all Scores in the database sorted by holes_remaining.
+    - Description: Returns some or all Scores in the database sorted by 
+    holes_remaining depending on the value of quantity_of_scores.
     
 - **get_user_games**
     - Path: 'user/{user_name}'

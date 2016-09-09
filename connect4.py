@@ -28,6 +28,9 @@ MAKE_MOVE_REQUEST = endpoints.ResourceContainer(
     MakeMoveForm,
     urlsafe_game_key=messages.StringField(1), )
 
+GET_SCORES_REQUEST = endpoints.ResourceContainer(
+    quantity_of_scores=messages.IntegerField(1),)
+
 
 @endpoints.api(name='connect4',
                version='v1',
@@ -158,15 +161,47 @@ class ConnectFourApi(remote.Service):
 
         return game.to_form(message)
 
-    @endpoints.method(response_message=ScoreForms,
+    @endpoints.method(request_message=GET_SCORES_REQUEST,
+                      response_message=ScoreForms,
                       path='scores',
-                      name='get_scores',
+                      name='get_high_scores',
                       http_method='GET')
-    def get_scores(self, request):
+    def get_high_scores(self, request):
         """Return all scores"""
-        return ScoreForms(items=[score.to_form()
-                                 for score in Score.query().order(
-                                    -Score.holes_remaining)])
+        if request.quantity_of_scores:
+            # Check if quantity of scores integer
+            try:
+                quantity_of_scores = int(request.quantity_of_scores)
+            except ValueError:
+                """ TODO: Udacity Reviewer, do I have to check if this is an
+                            Integer? As I noticed that if I provide a
+                            non-Integer Endpoint already throws a error 'Error
+                            parsing ProtoRPC request(Unable to parse request
+                            content: Expected type (<type 'int'>, <type 'long'>)
+                            for field quantity_of_scores, found bob (type <type
+                            'unicode'>))', because the request field is of
+                            type IntegerField"""
+                raise endpoints.BadRequestException(
+                    'Quantity of Scores most be an integer')
+
+            # check is positive integer
+            if quantity_of_scores < 1:
+                # TODO: Udacity Reviewer, what's the best way to structure this
+                # and previous validation so that I don't have to repeat the
+                # raising of the same exception?
+                raise endpoints.BadRequestException(
+                    'Quantity of Scores most be an '
+                    'positive integer greater that 1')
+
+            # return limited set of scores, according to quantity provided
+            return ScoreForms(
+                items=[score.to_form() for score in Score.query(
+                ).order(-Score.holes_remaining).fetch(quantity_of_scores)])
+
+        else:  # no quantity provided, so return all scores
+            return ScoreForms(items=[score.to_form()
+                                     for score in Score.query().order(
+                                        -Score.holes_remaining)])
 
     @endpoints.method(request_message=GET_USER_GAMES_REQUEST,
                       response_message=GameForms,
