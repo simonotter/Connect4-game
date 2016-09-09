@@ -11,11 +11,19 @@ EMAIL_SCOPE = endpoints.EMAIL_SCOPE
 
 USER_REQUEST = endpoints.ResourceContainer(user_name=messages.StringField(1),
                                            email=messages.StringField(2))
+
 NEW_GAME_REQUEST = endpoints.ResourceContainer(NewGameForm)
+
 GET_GAME_REQUEST = endpoints.ResourceContainer(
     urlsafe_game_key=messages.StringField(1), )
+
+CANCEL_GAME_REQUEST = endpoints.ResourceContainer(
+    user_name=messages.StringField(1),
+    urlsafe_game_key=messages.StringField(2), )
+
 GET_USER_GAMES_REQUEST = endpoints.ResourceContainer(
     user_name=messages.StringField(1))
+
 MAKE_MOVE_REQUEST = endpoints.ResourceContainer(
     MakeMoveForm,
     urlsafe_game_key=messages.StringField(1), )
@@ -177,6 +185,34 @@ class ConnectFourApi(remote.Service):
         return GameForms(
             items=[game.to_form('test') for game in games])
 
+    @endpoints.method(request_message=CANCEL_GAME_REQUEST,
+                      response_message=StringMessage,
+                      path='game/{urlsafe_game_key}',
+                      name='cancel_game',
+                      http_method='DELETE')
+    def cancel_game(self, request):
+        """Cancel and delete the current game state."""
+        game = get_by_urlsafe(request.urlsafe_game_key, Game)
+
+        if game:  # game exits
+            # check if user is a player in this game
+            if request.user_name not in (game.player1.get().name,
+                                         game.player2.get().name):
+                raise endpoints.ConflictException(
+                    'You are not a player of this game')
+
+            if game.game_over:
+                # TODO: Udacity Reviewer: How best to split next line over
+                # several lines without getting a '\n' linebreak in the
+                # response in the api?
+                return StringMessage(
+                    message="""This game has ended. It was won by %s and cannot be cancelled"""
+                    % game.whose_turn.get().name)
+            else:
+                game.key.delete()
+                return StringMessage(message='Game cancelled and deleted.')
+        else:
+            raise endpoints.NotFoundException('No game exists with that key!')
 
 # registers API
 api = endpoints.api_server([ConnectFourApi])

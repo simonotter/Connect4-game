@@ -75,6 +75,14 @@ the path parameter `urlsafe_game_key`.
     - Description: Returns all active Games in the database where user_name 
     is player 1 or player 2.
     
+ - **cancel_game**
+    - Path: 'game/{urlsafe_game_key}'
+    - Method: DELETE
+    - Parameters: urlsafe_game_key, user_name
+    - Returns: Message confirming cancellation of the Game.
+    - Description: Deletes a game from the database if user_name is player1 or
+    player 2, and the game is not over.
+    
 ##Models Included:
  - **User**
     - Stores unique user_name and email address.
