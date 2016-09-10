@@ -91,6 +91,13 @@ the path parameter `urlsafe_game_key`.
     - Returns: UserRankForms
     - Description: Returns all UserRanks in the database sorted by win ratio
     
+  - **get_game_history**
+    - Path: 'game_history/{urlsafe_game_key}'
+    - Method: GET
+    - Parameters: urlsafe_game_key
+    - Returns: HistoryForms
+    - Description: Returns a History of all the moves played in a game
+    
 ##Models Included:
  - **User**
     - Stores unique user_name and email address.

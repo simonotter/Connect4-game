@@ -165,6 +165,24 @@ class Board:
         return False
 
 
+class History(ndb.Model):
+    move_date = ndb.DateTimeProperty(required=True, auto_now_add=True)
+    user = ndb.KeyProperty(required=True, kind='User')
+    column = ndb.IntegerProperty(required=True)
+
+
+class HistoryForm(messages.Message):
+    """ScoreForm for outbound Score information"""
+    move_date = messages.StringField(1, required=True)
+    user_name = messages.StringField(2, required=True)
+    column = messages.IntegerField(3, required=True)
+
+
+class HistoryForms(messages.Message):
+    """Return multiple ScoreForms"""
+    items = messages.MessageField(HistoryForm, 1, repeated=True)
+
+
 class Game(ndb.Model):
     """Game class"""
     player1 = ndb.KeyProperty(required=True, kind='User')
@@ -177,6 +195,7 @@ class Game(ndb.Model):
     board = ndb.PickleProperty(required=True)
     holes_remaining = ndb.IntegerProperty(required=True, default=42)
     game_over = ndb.BooleanProperty(required=True, default=False)
+    history = ndb.StructuredProperty(History, repeated=True)
 
     @classmethod
     def new_game(cls, user1, user2):
@@ -268,7 +287,7 @@ class Game(ndb.Model):
                                                          games_played + 0.0)
             user_rank.put()
 
-    def to_form(self, message):
+    def to_form(self):
         """Returns a GameForm representation of the Game"""
         form = GameForm()
         form.urlsafe_key = self.key.urlsafe()
@@ -282,6 +301,17 @@ class Game(ndb.Model):
         form.board = str(self.board.board)
         form.visual_board = self.board.visual_board()
         return form
+
+    def history_to_form(self):
+        """Returns a series of History Forms"""
+        forms = HistoryForms()
+        for history in self.history:
+            form = HistoryForm()
+            form.move_date = str(history.move_date)
+            form.user_name = history.user.get().name
+            form.column = history.column
+            forms.items.append(form)
+        return forms
 
 
 class Score(ndb.Model):

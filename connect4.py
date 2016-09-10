@@ -2,8 +2,8 @@ import endpoints
 from google.appengine.ext import ndb
 from protorpc import remote, messages
 from models import User, Game, Score
-from models import StringMessage, NewGameForm, GameForm, GameForms, \
-                   MakeMoveForm, ScoreForms, UserRankForms, UserRank
+from models import StringMessage, NewGameForm, GameForm, GameForms,\
+    MakeMoveForm, ScoreForms, UserRankForms, UserRank, HistoryForms
 from utils import get_by_urlsafe
 
 API_EXPLORER_CLIENT_ID = endpoints.API_EXPLORER_CLIENT_ID
@@ -37,7 +37,7 @@ GET_SCORES_REQUEST = endpoints.ResourceContainer(
                allowed_client_ids=[API_EXPLORER_CLIENT_ID],
                scopes=[EMAIL_SCOPE])
 class ConnectFourApi(remote.Service):
-    """Connect Four API v0.1"""
+    """Connect Four Game API v0.1"""
 
     @endpoints.method(request_message=USER_REQUEST,
                       response_message=StringMessage,
@@ -134,6 +134,10 @@ class ConnectFourApi(remote.Service):
 
         if game.board.update(column, colour):
 
+            # Log game history Record
+            game.history.append(HistoryRecord(user=game.whose_turn,
+                                              column=column))
+
             # Decrease attempts remaining
             game.holes_remaining -= 1
 
@@ -207,6 +211,18 @@ class ConnectFourApi(remote.Service):
                 return StringMessage(message='Game cancelled and deleted.')
         else:
             raise endpoints.NotFoundException('No game exists with that key!')
+
+    @endpoints.method(request_message=GET_GAME_REQUEST,
+                      response_message=HistoryForms,
+                      path='game_history/{urlsafe_game_key}',
+                      name='get_game_history',
+                      http_method='GET')
+    def get_game_history(self, request):
+        game = get_by_urlsafe(request.urlsafe_game_key, Game)
+        if not game:
+            raise ValueError("Game doesn't exist")
+
+        return game.history_to_form()
 
     @endpoints.method(request_message=GET_SCORES_REQUEST,
                       response_message=ScoreForms,
