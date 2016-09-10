@@ -238,6 +238,36 @@ class Game(ndb.Model):
                           holes_remaining=self.holes_remaining)
             score.put()
 
+            # Update winning user rank
+            user_rank = UserRank.query(
+                UserRank.user_name == self.whose_turn).get()
+            if not user_rank:
+                user_rank = UserRank()
+                user_rank.user_name = self.whose_turn
+                user_rank.games_played = 1
+                user_rank.games_won = 1
+            else:
+                user_rank.games_played += 1
+                user_rank.games_won += 1
+            user_rank.win_ratio = user_rank.games_won / (user_rank.
+                                                         games_played + 0.0)
+            user_rank.put()
+
+            # Update losing user rank
+            user_rank = UserRank.query(
+                UserRank.user_name == loser).get()
+            if not user_rank:
+                user_rank = UserRank()
+                user_rank.user_name = loser
+                user_rank.games_played = 1
+                user_rank.games_won = 0
+            else:
+                user_rank.games_played += 1
+
+            user_rank.win_ratio = user_rank.games_won / (user_rank.
+                                                         games_played + 0.0)
+            user_rank.put()
+
     def to_form(self, message):
         """Returns a GameForm representation of the Game"""
         form = GameForm()
@@ -266,6 +296,20 @@ class Score(ndb.Model):
                          losing_user=self.losing_user.get().name,
                          date=str(self.date),
                          holes_remaining=self.holes_remaining)
+
+
+class UserRank(ndb.Model):
+    """User rank object"""
+    user_name = ndb.KeyProperty(required=True, kind='User')
+    games_played = ndb.IntegerProperty(required=True)
+    games_won = ndb.IntegerProperty(required=True)
+    win_ratio = ndb.FloatProperty(required=True)
+
+    def to_form(self):
+        return UserRankForm(user_name=self.user_name.get().name,
+                            games_played=self.games_played,
+                            games_won=self.games_won,
+                            win_ratio=self.win_ratio)
 
 
 class GameForm(messages.Message):
@@ -309,6 +353,19 @@ class ScoreForm(messages.Message):
 class ScoreForms(messages.Message):
     """Return multiple ScoreForms"""
     items = messages.MessageField(ScoreForm, 1, repeated=True)
+
+
+class UserRankForm(messages.Message):
+    """UserRankForm for outbound user rank information"""
+    user_name = messages.StringField(1, required=True)
+    games_played = messages.IntegerField(2, required=True)
+    games_won = messages.IntegerField(3, required=True)
+    win_ratio = messages.FloatField(4, required=True)
+
+
+class UserRankForms(messages.Message):
+    """Return multiple UserRankForms"""
+    items = messages.MessageField(UserRankForm, 1, repeated=True)
 
 
 class StringMessage(messages.Message):

@@ -2,8 +2,8 @@ import endpoints
 from google.appengine.ext import ndb
 from protorpc import remote, messages
 from models import User, Game, Score
-from models import StringMessage, NewGameForm, \
-                   GameForm, GameForms, MakeMoveForm, ScoreForms
+from models import StringMessage, NewGameForm, GameForm, GameForms, \
+                   MakeMoveForm, ScoreForms, UserRankForms, UserRank
 from utils import get_by_urlsafe
 
 API_EXPLORER_CLIENT_ID = endpoints.API_EXPLORER_CLIENT_ID
@@ -96,8 +96,6 @@ class ConnectFourApi(remote.Service):
         """Makes a move. Returns a game state with message"""
         game = get_by_urlsafe(request.urlsafe_game_key, Game)
         if not game:
-            """ TODO: Udacity Reviewer, how can I return a null GameForm
-                      response if the game doesn't exist?"""
             raise ValueError("Game doesn't exist")
 
         if game.game_over:
@@ -169,14 +167,17 @@ class ConnectFourApi(remote.Service):
     def get_user_games(self, request):
         """Returns all of a User's active games"""
         user = User.query().filter(User.name == request.user_name).get()
-        print user.key
-        q = Game.query(ndb.AND(ndb.OR(Game.player1 == user.key,
-                                      Game.player2 == user.key)),
-                              (Game.game_over != True))
-        games = q.fetch()
+        if user:
+            q = Game.query(ndb.AND(ndb.OR(Game.player1 == user.key,
+                                          Game.player2 == user.key)),
+                                  (Game.game_over != True))
+            games = q.fetch()
 
-        return GameForms(
-            items=[game.to_form('test') for game in games])
+            return GameForms(
+                items=[game.to_form('') for game in games])
+        else:
+            raise endpoints.NotFoundException(
+                'No user exists with that user name')
 
     @endpoints.method(request_message=CANCEL_GAME_REQUEST,
                       response_message=StringMessage,
@@ -248,6 +249,16 @@ class ConnectFourApi(remote.Service):
             return ScoreForms(items=[score.to_form()
                                      for score in Score.query().order(
                     -Score.holes_remaining)])
+
+    @endpoints.method(response_message=UserRankForms,
+                      path='rankings',
+                      name='get_user_rankings',
+                      http_method='GET')
+    def get_user_rankings(self, request):
+        """Returns list of user rankings"""
+        return UserRankForms(items=[user_rank.to_form()
+                                    for user_rank in UserRank.query().order(
+                -UserRank.win_ratio)])
 
 # registers API
 api = endpoints.api_server([ConnectFourApi])

@@ -58,7 +58,7 @@ the path parameter `urlsafe_game_key`.
     - Returns: GameForm with new game state.
     - Description: Accepts a players 'column' to put their token into and 
     returns the updated state of the game. If this causes a game to end, a 
-    corresponding Score entity will be created.
+    corresponding Score entity will be created, and UserRank will be updated.
     
 - **get_high_scores**
     - Path: 'scores'
@@ -83,6 +83,13 @@ the path parameter `urlsafe_game_key`.
     - Returns: Message confirming cancellation of the Game.
     - Description: Deletes a game from the database if user_name is player1 or
     player 2, and the game is not over.
+    
+ - **get_user_rankings**
+    - Path: 'rankings'
+    - Method: GET
+    - Parameters: none
+    - Returns: UserRankForms
+    - Description: Returns all UserRanks in the database sorted by win ratio
     
 ##Models Included:
  - **User**
