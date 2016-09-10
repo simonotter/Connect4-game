@@ -18,6 +18,10 @@ Many different Guess a Number games can be played by many different
 Users at any given time. Each game can be retrieved or played by using 
 the path parameter `urlsafe_game_key`.
 
+##Scoring and User Ranking
+When winning a game, the score is equal to number of holes that remain in the the game board.
+At the end of each game, the users ranking is updated based the number of games won as a ratio of games played.
+
 ##Files Included:
  - api.py: Contains endpoints and game playing logic.
  - app.yaml: App configuration.
@@ -26,7 +30,7 @@ the path parameter `urlsafe_game_key`.
  - models.py: Entity and message definitions including helper methods.
  - utils.py: Helper function for retrieving ndb.Models by urlsafe Key string.
  
- ##Endpoints Included:
+##Endpoints Included:
  - **create_user**
     - Path: 'user'
     - Method: POST
@@ -125,7 +129,7 @@ the path parameter `urlsafe_game_key`.
  - **StringMessage**
     - General purpose String container.
     
- ##Cron Jobs
+##Cron Jobs
  - An hourly email is sent to all users who have unfinished games
     
 
