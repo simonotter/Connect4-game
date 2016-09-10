@@ -125,5 +125,8 @@ the path parameter `urlsafe_game_key`.
  - **StringMessage**
     - General purpose String container.
     
+ ##Cron Jobs
+ - An hourly email is sent to all users who have unfinished games
+    
 
  

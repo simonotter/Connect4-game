@@ -15,11 +15,39 @@
 # limitations under the License.
 #
 import webapp2
+from google.appengine.api import mail, app_identity
+from models import User, Game
+
+
+class SendReminderEmail(webapp2.RequestHandler):
+    def get(self):
+        """Send a reminder email to each User with an email about
+        unfinished games. Called periodically using a cron job"""
+        app_id = app_identity.get_application_id()
+        # TODO: Maybe make this a projection query to only pull back player1 & 2
+        games = Game.query(Game.game_over != True)
+        users = User.query(User.email != None)
+        for game in games:
+            users = [game.player1, game.player2]
+
+            for user_key in users:
+                user = user_key.get()
+
+                subject = 'You have an unfinished game'
+                body = 'Hello {}, you have an unfinished game of Connect 4'.format(user.name)
+                # This will send test emails, the arguments to send_mail are:
+                # from, to, subject, body
+                mail.send_mail('noreply@{}.appspotmail.com'.format(app_id),
+                               user.email,
+                               subject,
+                               body)
+
 
 class MainHandler(webapp2.RequestHandler):
     def get(self):
         self.response.write('Hello everyone!')
 
 app = webapp2.WSGIApplication([
-    ('/', MainHandler)
+    ('/', MainHandler),
+    ('/crons/send_reminder', SendReminderEmail),
 ], debug=True)
