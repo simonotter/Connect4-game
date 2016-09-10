@@ -1,0 +1,18 @@
+Design Reflections
+
+What additional properties did you add to your models and why?
+- I actually started my project from scratch and used the Skeleton sample as a reference.
+- I added a board class that represented the Connect 4 game board. This is stored in the Game as a PickleProperty.
+- I added player 1 and player 2 details to the Game entity, a who’s turn? property and a switch_turn method. Who goes first and the colour of each players tokens are randomly chosen.
+- I added Scoring and Ranking functionality.
+- I added added move history tracking, which is stored as a repeating StructuredProperty on the Game entity.
+
+
+What were some of the trade-offs or struggles you faced when implementing the new game logic?
+- I found it difficult to know how to store a standard python object in a datastore entity, until someone in the Slack group told me about PickleProperty.
+- I found it really difficult to check for winning diagonal rows on game board. For diagonals from top left to bottom right, I managed to ‘locate’ each diagonal in the 2x2 array using a loop, but I have 6 almost identical loops to ‘locate’ each of the 6 diagonals that can contain a row of four game pieces.
+- For the diagonals that run from bottom left to top right, the algorithmic challenge was too difficult for me, so I had to effectively hardcode the ‘locations’ of the diagonals.
+- I found it a challenge to play the game during testing and development, with only a text-based response of the game board. I also found it very time consuming to play games to create various test scenarios.
+- I found it difficult to know how to generate the HistoryForms because history records are a repeated items within the Game entity, not their own separate entity.
+- I found it difficult to know how to get long lines of code to be under 80 characters. 
+
