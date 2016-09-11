@@ -217,13 +217,10 @@ class ConnectFourApi(remote.Service):
                     'You are not a player of this game')
 
             if game.game_over:
-                # TODO: Udacity Reviewer: How best to split next line over
-                # several lines without getting a '\n' linebreak in the
-                # response in the api?
-                return StringMessage(
-                    message="""This game has ended. It was won by %s and cannot
-                     be cancelled"""
-                    % game.whose_turn.get().name)
+                user = game.whose_turn.get()
+                message = """This game has ended. It was won by {user_name} and
+                    cannot be cancelled""".format(user_name=user.name)
+                return StringMessage(message=message)
             else:
                 game.key.delete()
                 return StringMessage(message='Game cancelled and deleted.')
@@ -251,34 +248,16 @@ class ConnectFourApi(remote.Service):
     def get_high_scores(self, request):
         """Return all scores"""
         if request.quantity_of_scores:
-            # Check if quantity of scores integer
-            try:
-                quantity_of_scores = int(request.quantity_of_scores)
-            except ValueError:
-                """ TODO: Udacity Reviewer, do I have to check if this is an
-                            Integer? As I noticed that if I provide a
-                            non-Integer Endpoint already throws a error 'Error
-                            parsing ProtoRPC request(Unable to parse request
-                            content: Expected type (<type 'int'>, <type 'long'>)
-                            for field quantity_of_scores, found bob (type <type
-                            'unicode'>))', because the request field is of
-                            type IntegerField"""
-                raise endpoints.BadRequestException(
-                    'Quantity of Scores most be an integer')
-
             # check is positive integer
-            if quantity_of_scores < 1:
-                # TODO: Udacity Reviewer, what's the best way to structure this
-                # and previous validation so that I don't have to repeat the
-                # raising of the same exception?
+            if request.quantity_of_scores < 1:
                 raise endpoints.BadRequestException(
-                    'Quantity of Scores most be an '
-                    'positive integer greater that 1')
+                    'Quantity of Scores most be an positive integer')
 
             # return limited set of scores, according to quantity provided
             return ScoreForms(
                 items=[score.to_form() for score in Score.query(
-                ).order(-Score.holes_remaining).fetch(quantity_of_scores)])
+                ).order(-Score.holes_remaining).fetch(
+                    request.quantity_of_scores)])
 
         else:  # no quantity provided, so return all scores
             return ScoreForms(items=[score.to_form()
