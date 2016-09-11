@@ -11,47 +11,46 @@ class User(ndb.Model):
 
 
 class Board:
-    width, height = 7, 6
+    BOARD_WIDTH, BOARD_HEIGHT = 7, 6
+    EMPTY_SLOT = 'X'
 
     def __init__(self):
         # TODO: Udacity Reviewer, is there a better structure to avoid later
         # having to refer to game.board.board (e.g. board twice!)
-        self.board = [['X' for x in range(self.width)]
-                      for y in range(self.height)]
+        self.board = [[self.EMPTY_SLOT for x in range(self.BOARD_WIDTH)]
+                      for y in range(self.BOARD_HEIGHT)]
 
-    def update(self, col, colour):
-        for row in range(self.height):
-            if self.board[row][col - 1] is 'X':
-                self.board[row][col - 1] = colour
+    def update(self, col, player_token):
+        col -= 1
+        for row in range(self.BOARD_HEIGHT):
+            if self.board[row][col] is self.EMPTY_SLOT:
+                self.board[row][col] = player_token
                 return True  # Move has been successful
-        """ TODO: Udacity Reviewer, is the above the best way to structure the
-                conditional logic and returns. It works, but I don't feel it is easy
-                to understand """
         return False  # Move has been unsuccessful
 
     def visual_board(self):
         """Returns a string rendered visual of the game board"""
         row_string = ''
-        row_string += ''.join(self.board[self.height - 1]) + '|'
-        row_string += ''.join(self.board[self.height - 2]) + '|'
-        row_string += ''.join(self.board[self.height - 3]) + '|'
-        row_string += ''.join(self.board[self.height - 4]) + '|'
-        row_string += ''.join(self.board[self.height - 5]) + '|'
-        row_string += ''.join(self.board[self.height - 6]) + '|'
+        row_string += ''.join(self.board[self.BOARD_HEIGHT - 1]) + '|'
+        row_string += ''.join(self.board[self.BOARD_HEIGHT - 2]) + '|'
+        row_string += ''.join(self.board[self.BOARD_HEIGHT - 3]) + '|'
+        row_string += ''.join(self.board[self.BOARD_HEIGHT - 4]) + '|'
+        row_string += ''.join(self.board[self.BOARD_HEIGHT - 5]) + '|'
+        row_string += ''.join(self.board[self.BOARD_HEIGHT - 6]) + '|'
 
         return row_string
 
     def is_won(self):
         # check for horizontal winning rows
-        for row in range(self.height):
+        for row in range(self.BOARD_HEIGHT):
             row_string = ''.join(self.board[row])
             if row_string.find('RRRR') != -1 or row_string.find('YYYY') != -1:
                 return True  # found winning horizontal row
 
         # check for vertical winning rows
-        for col in range(self.width):
+        for col in range(self.BOARD_WIDTH):
             column_string = ''
-            for row in range(self.height):
+            for row in range(self.BOARD_HEIGHT):
                 column_string += self.board[row][col]
             if column_string.find('RRRR') != -1 or column_string.find('YYYY') != -1:
                 return True  # found winning vertical row
