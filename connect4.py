@@ -1,9 +1,20 @@
 import endpoints
 from google.appengine.ext import ndb
 from protorpc import remote, messages
-from models import User, Game, Score
-from models import StringMessage, NewGameForm, GameForm, GameForms,\
-    MakeMoveForm, ScoreForms, UserRankForms, UserRank, History, HistoryForms
+from models import (
+    User,
+    Game,
+    Score,
+    StringMessage,
+    NewGameForm,
+    GameForm,
+    GameForms,
+    MakeMoveForm,
+    ScoreForms,
+    UserRankForms,
+    UserRank,
+    History,
+    HistoryForms)
 from utils import get_by_urlsafe
 
 API_EXPLORER_CLIENT_ID = endpoints.API_EXPLORER_CLIENT_ID
@@ -80,8 +91,8 @@ class ConnectFourApi(remote.Service):
         game = get_by_urlsafe(request.urlsafe_game_key, Game)
         if game:
             if game.game_over:
-                return game.to_form('This game has ended. It was won by %s.'
-                                    % game.whose_turn.get().name)
+                raise endpoints.ForbiddenException(
+                    'Illegal action: Game is already over.')
             else:
                 return game.to_form(
                     'Time to make a move, %s!' % game.whose_turn.get().name)
@@ -97,21 +108,23 @@ class ConnectFourApi(remote.Service):
         """Makes a move. Returns a game state with message"""
         game = get_by_urlsafe(request.urlsafe_game_key, Game)
         if not game:
-            raise ValueError("Game doesn't exist")
+            raise endpoints.NotFoundException('Game not found!')
 
         if game.game_over:
-            return game.to_form('This game has ended. It was won by %s.'
-                                % game.whose_turn.get().name)
+            raise endpoints.ForbiddenException(
+                'Illegal action: Game is already over.')
 
         # Check if column integer
         try:
             column = int(request.column)
         except ValueError:
-            return game.to_form('Column must be a number between 1 and 7!')
+            raise endpoints.BadRequestException(
+                'Column must be a number between 1 and 7!')
 
         # validate the column input
         if not (1 <= column <= 7):
-            return game.to_form('Column must be a number between 1 and 7!')
+            raise endpoints.BadRequestException(
+                'Column must be a number between 1 and 7!')
 
         """ TODO: Udacity Reviewer, is this efficient to keep getting the
                   names each time? I seem to be doing it all the time in this
@@ -120,11 +133,12 @@ class ConnectFourApi(remote.Service):
         # Check if the player is part of this game
         if request.player not in [game.player1.get().name,
                                   game.player2.get().name]:
-            return game.to_form('You are not part of this game')
+            raise endpoints.ForbiddenException(
+                'You are not part of this game')
 
         # Ensure it's this players turn
         if game.whose_turn.get().name != request.player:
-            return game.to_form(
+            raise endpoints.UnauthorizedException(
                 "It's not your turn, it's %s's!" % game.whose_turn.get().name)
 
         # Get token colour of current player
@@ -199,7 +213,7 @@ class ConnectFourApi(remote.Service):
             # check if user is a player in this game
             if request.user_name not in (game.player1.get().name,
                                          game.player2.get().name):
-                raise endpoints.ConflictException(
+                raise endpoints.UnauthorizedException(
                     'You are not a player of this game')
 
             if game.game_over:
@@ -225,7 +239,7 @@ class ConnectFourApi(remote.Service):
         """Get history of all moves by each player on a game."""
         game = get_by_urlsafe(request.urlsafe_game_key, Game)
         if not game:
-            raise ValueError("Game doesn't exist")
+            raise endpoints.NotFoundException("Game doesn't exist")
 
         return game.history_to_form()
 
