@@ -3,7 +3,7 @@ from google.appengine.ext import ndb
 from protorpc import remote, messages
 from models import User, Game, Score
 from models import StringMessage, NewGameForm, GameForm, GameForms,\
-    MakeMoveForm, ScoreForms, UserRankForms, UserRank, HistoryForms
+    MakeMoveForm, ScoreForms, UserRankForms, UserRank, History, HistoryForms
 from utils import get_by_urlsafe
 
 API_EXPLORER_CLIENT_ID = endpoints.API_EXPLORER_CLIENT_ID
@@ -135,8 +135,8 @@ class ConnectFourApi(remote.Service):
         if game.board.update(column, colour):
 
             # Log game history Record
-            game.history.append(HistoryRecord(user=game.whose_turn,
-                                              column=column))
+            game.history.append(History(user=game.whose_turn,
+                                        column=column))
 
             # Decrease attempts remaining
             game.holes_remaining -= 1
