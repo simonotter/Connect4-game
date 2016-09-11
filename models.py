@@ -287,7 +287,7 @@ class Game(ndb.Model):
                                                          games_played + 0.0)
             user_rank.put()
 
-    def to_form(self):
+    def to_form(self, message):
         """Returns a GameForm representation of the Game"""
         form = GameForm()
         form.urlsafe_key = self.key.urlsafe()
