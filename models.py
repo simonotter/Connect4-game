@@ -28,18 +28,6 @@ class Board:
                 return True  # Move has been successful
         return False  # Move has been unsuccessful
 
-    def visual_board(self):
-        """Returns a string rendered visual of the game board"""
-        row_string = ''
-        row_string += ''.join(self.board[self.BOARD_HEIGHT - 1]) + '|'
-        row_string += ''.join(self.board[self.BOARD_HEIGHT - 2]) + '|'
-        row_string += ''.join(self.board[self.BOARD_HEIGHT - 3]) + '|'
-        row_string += ''.join(self.board[self.BOARD_HEIGHT - 4]) + '|'
-        row_string += ''.join(self.board[self.BOARD_HEIGHT - 5]) + '|'
-        row_string += ''.join(self.board[self.BOARD_HEIGHT - 6]) + '|'
-
-        return row_string
-
     def is_won(self):
         # check for horizontal winning rows
         for row in range(self.BOARD_HEIGHT):
@@ -52,7 +40,8 @@ class Board:
             column_string = ''
             for row in range(self.BOARD_HEIGHT):
                 column_string += self.board[row][col]
-            if column_string.find('RRRR') != -1 or column_string.find('YYYY') != -1:
+            if column_string.find('RRRR') != -1 or \
+                    column_string.find('YYYY') != -1:
                 return True  # found winning vertical row
 
         # check for diagonal winning rows (bottom left to top right)
@@ -301,7 +290,6 @@ class Game(ndb.Model):
         form.game_over = self.game_over
         form.message = message
         form.board = str(self.board.board)
-        form.visual_board = self.board.visual_board()
         return form
 
     def history_to_form(self):
@@ -356,8 +344,6 @@ class GameForm(messages.Message):
     game_over = messages.BooleanField(6, required=True)
     message = messages.StringField(7, required=True)
     board = messages.StringField(8, required=True)
-    visual_board = messages.StringField(9, required=True)
-
 
 class GameForms(messages.Message):
     """Return multiple GameForms"""

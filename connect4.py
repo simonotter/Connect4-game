@@ -207,7 +207,8 @@ class ConnectFourApi(remote.Service):
                 # several lines without getting a '\n' linebreak in the
                 # response in the api?
                 return StringMessage(
-                    message="""This game has ended. It was won by %s and cannot be cancelled"""
+                    message="""This game has ended. It was won by %s and cannot
+                     be cancelled"""
                     % game.whose_turn.get().name)
             else:
                 game.key.delete()
