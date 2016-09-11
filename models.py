@@ -14,6 +14,8 @@ class Board:
     width, height = 7, 6
 
     def __init__(self):
+        # TODO: Udacity Reviewer, is there a better structure to avoid later
+        # having to refer to game.board.board (e.g. board twice!)
         self.board = [['X' for x in range(self.width)]
                       for y in range(self.height)]
 
@@ -30,7 +32,6 @@ class Board:
     def visual_board(self):
         """Returns a string rendered visual of the game board"""
         row_string = ''
-        #for row in range(6, self.width-1):
         row_string += ''.join(self.board[self.height - 1]) + '|'
         row_string += ''.join(self.board[self.height - 2]) + '|'
         row_string += ''.join(self.board[self.height - 3]) + '|'
@@ -169,6 +170,7 @@ class History(ndb.Model):
     move_date = ndb.DateTimeProperty(required=True, auto_now_add=True)
     user = ndb.KeyProperty(required=True, kind='User')
     column = ndb.IntegerProperty(required=True)
+    board_state_after_move = ndb.PickleProperty(required=True)
 
 
 class HistoryForm(messages.Message):
@@ -176,6 +178,7 @@ class HistoryForm(messages.Message):
     move_date = messages.StringField(1, required=True)
     user_name = messages.StringField(2, required=True)
     column = messages.IntegerField(3, required=True)
+    board_state = messages.StringField(4, required=True)
 
 
 class HistoryForms(messages.Message):
@@ -310,6 +313,8 @@ class Game(ndb.Model):
             form.move_date = str(history.move_date)
             form.user_name = history.user.get().name
             form.column = history.column
+            print str(history.board_state_after_move)
+            form.board_state = str(history.board_state_after_move)
             forms.items.append(form)
         return forms
 

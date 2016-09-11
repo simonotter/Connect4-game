@@ -137,7 +137,8 @@ class ConnectFourApi(remote.Service):
 
             # Log game history Record
             game.history.append(History(user=game.whose_turn,
-                                        column=column))
+                                        column=column,
+                                        board_state_after_move=game.board.board))
 
             # Decrease attempts remaining
             game.holes_remaining -= 1
