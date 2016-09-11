@@ -14,10 +14,6 @@ The first player can always win by playing the right moves.
 Each player makes their move via the `make_move` endpoint which will reply
 with either: 'next player turn', 'you win', or 'game over' (if no more moves can be made).
 
-Many different Guess a Number games can be played by many different 
-Users at any given time. Each game can be retrieved or played by using 
-the path parameter `urlsafe_game_key`.
-
 ##Scoring and User Ranking
 When winning a game, the score is equal to number of holes that remain in the the game board.
 At the end of each game, the users ranking is updated based the number of games won as a ratio of games played.
