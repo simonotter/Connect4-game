@@ -9,8 +9,9 @@ from utils import get_by_urlsafe
 API_EXPLORER_CLIENT_ID = endpoints.API_EXPLORER_CLIENT_ID
 EMAIL_SCOPE = endpoints.EMAIL_SCOPE
 
-USER_REQUEST = endpoints.ResourceContainer(user_name=messages.StringField(1),
-                                           email=messages.StringField(2))
+USER_REQUEST = endpoints.ResourceContainer(
+    user_name=messages.StringField(1, required=True),
+    email=messages.StringField(2, required=True))
 
 NEW_GAME_REQUEST = endpoints.ResourceContainer(NewGameForm)
 
@@ -18,7 +19,7 @@ GET_GAME_REQUEST = endpoints.ResourceContainer(
     urlsafe_game_key=messages.StringField(1), )
 
 CANCEL_GAME_REQUEST = endpoints.ResourceContainer(
-    user_name=messages.StringField(1),
+    user_name=messages.StringField(1, required=True),
     urlsafe_game_key=messages.StringField(2), )
 
 GET_USER_GAMES_REQUEST = endpoints.ResourceContainer(
@@ -218,6 +219,7 @@ class ConnectFourApi(remote.Service):
                       name='get_game_history',
                       http_method='GET')
     def get_game_history(self, request):
+        """Get history of all moves by each player on a game."""
         game = get_by_urlsafe(request.urlsafe_game_key, Game)
         if not game:
             raise ValueError("Game doesn't exist")
