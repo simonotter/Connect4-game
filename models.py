@@ -45,7 +45,6 @@ class Board:
                 return True  # found winning vertical row
 
         # check for diagonal winning rows (bottom left to top right)
-        # TODO: This can be done much more efficiently!
         diagonal_string = ''
         for col in range(3, 7):
             diagonal_string += self.board[col - 3][col]
@@ -64,7 +63,7 @@ class Board:
         for col in range(1, 7):
             diagonal_string += self.board[col - 1][col]
         if diagonal_string.find('RRRR') != -1 or \
-                        diagonal_string.find('YYYY') != -1:
+                diagonal_string.find('YYYY') != -1:
             return True  # found winning diagonal row
 
         diagonal_string = ''
@@ -78,25 +77,24 @@ class Board:
         for col in range(0, 5):
             diagonal_string += self.board[col + 1][col]
         if diagonal_string.find('RRRR') != -1 or \
-                        diagonal_string.find('YYYY') != -1:
+                diagonal_string.find('YYYY') != -1:
             return True  # found winning diagonal row
 
         diagonal_string = ''
         for col in range(0, 4):
             diagonal_string += self.board[col + 2][col]
         if diagonal_string.find('RRRR') != -1 or \
-                        diagonal_string.find('YYYY') != -1:
+                diagonal_string.find('YYYY') != -1:
             return True  # found winning diagonal row
 
         # check for diagonal winning rows (top right to bottom left)
-        # TODO: This can be done much more efficiently!
         diagonal_string = ''
         diagonal_string += self.board[3][0]
         diagonal_string += self.board[2][1]
         diagonal_string += self.board[1][2]
         diagonal_string += self.board[0][3]
         if diagonal_string.find('RRRR') != -1 or \
-                        diagonal_string.find('YYYY') != -1:
+                diagonal_string.find('YYYY') != -1:
             return True  # found winning diagonal row
 
         diagonal_string = ''
@@ -106,7 +104,7 @@ class Board:
         diagonal_string += self.board[1][3]
         diagonal_string += self.board[0][4]
         if diagonal_string.find('RRRR') != -1 or \
-                        diagonal_string.find('YYYY') != -1:
+                diagonal_string.find('YYYY') != -1:
             return True  # found winning diagonal row
 
         diagonal_string = ''
@@ -117,7 +115,7 @@ class Board:
         diagonal_string += self.board[1][4]
         diagonal_string += self.board[0][5]
         if diagonal_string.find('RRRR') != -1 or \
-                        diagonal_string.find('YYYY') != -1:
+                diagonal_string.find('YYYY') != -1:
             return True  # found winning diagonal row
 
         diagonal_string = ''
@@ -128,7 +126,7 @@ class Board:
         diagonal_string += self.board[1][5]
         diagonal_string += self.board[0][6]
         if diagonal_string.find('RRRR') != -1 or \
-                        diagonal_string.find('YYYY') != -1:
+                diagonal_string.find('YYYY') != -1:
             return True  # found winning diagonal row
 
         diagonal_string = ''
@@ -138,7 +136,7 @@ class Board:
         diagonal_string += self.board[2][5]
         diagonal_string += self.board[1][6]
         if diagonal_string.find('RRRR') != -1 or \
-                        diagonal_string.find('YYYY') != -1:
+                diagonal_string.find('YYYY') != -1:
             return True  # found winning diagonal row
 
         diagonal_string = ''
@@ -147,7 +145,7 @@ class Board:
         diagonal_string += self.board[3][5]
         diagonal_string += self.board[2][6]
         if diagonal_string.find('RRRR') != -1 or \
-                        diagonal_string.find('YYYY') != -1:
+                diagonal_string.find('YYYY') != -1:
             return True  # found winning diagonal row
 
 
