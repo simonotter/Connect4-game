@@ -15,9 +15,7 @@ class Board:
     EMPTY_SLOT = 'X'
 
     def __init__(self):
-        # TODO: Udacity Reviewer, is there a better structure to avoid later
-        # having to refer to game.board.board (e.g. board twice!)
-        self.board = [[self.EMPTY_SLOT for x in range(self.BOARD_WIDTH)]
+        self.board = [[self.EMPTY_SLOT] * self.BOARD_WIDTH
                       for y in range(self.BOARD_HEIGHT)]
 
     def update(self, col, player_token):

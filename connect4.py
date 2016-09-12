@@ -126,10 +126,6 @@ class ConnectFourApi(remote.Service):
             raise endpoints.BadRequestException(
                 'Column must be a number between 1 and 7!')
 
-        """ TODO: Udacity Reviewer, is this efficient to keep getting the
-                  names each time? I seem to be doing it all the time in this
-                  method and it will make many reads to the ndb"""
-
         # Check if the player is part of this game
         if request.player not in [game.player1.get().name,
                                   game.player2.get().name]:
